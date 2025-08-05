@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Upload, Send, FileText, Shield, AlertTriangle, PenBox } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Textarea } from "@/components/ui/textarea"
 
 // Define a type for messages to match the structure expected by the UI
 interface Message {
@@ -23,7 +24,7 @@ export default function TermiChat() {
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
 
@@ -255,12 +256,13 @@ export default function TermiChat() {
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
+          <Textarea
             value={input}
             onChange={handleInputChange}
             placeholder="Ask me about terms & conditions, privacy policies, or upload a document..."
-            className="flex-1 bg-white rounded-full shadow-sm border-purple-200 focus:ring-2 focus:border-transparent"
+            className="flex-1 bg-white rounded-2xl border-purple-200 focus:border-purple-500 focus:ring-purple-500 min-h-[50px] max-h-[200px] resize-y p-3" // Adjusted styling for textarea
             disabled={isLoading}
+            rows={1} // Start with 1 row, will expand
           />
           <Button
             type="submit"
