@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -9,6 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Upload, Send, FileText, Shield, AlertTriangle, PenBox } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
+import { usePuterStore } from "@/lib/puter"
+import { formatFileSize } from "@/lib/formatFileSize"
+import { convertPdfToImage } from "@/lib/pdf2image"
+import { generateUUID } from "@/lib/utils"
+import { prepareInstructions } from "@/constants"
 
 // Define a type for messages to match the structure expected by the UI
 interface Message {
@@ -23,7 +28,12 @@ export default function TermiChat() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
+  const [file, setFile] = useState<File | null>(null)
+  const [analyzing, setAnalyzing] = useState<boolean>(false)
+  const [status, setStatus] = useState<string>("")
+  const {auth, fs, kv, ai} = usePuterStore();
+  const router = useRouter();
+  const next = new URLSearchParams(window.location.search).get("next")
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
@@ -99,14 +109,57 @@ export default function TermiChat() {
     }
   }
 
-  const handleFileUpload = (file: File) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const content = e.target?.result as string
-      const message = `Please analyze this document:\n\n${content.substring(0, 500)}... (truncated for simulation)` // Truncate for simulation
-      handleSubmit(new Event("submit") as any, message) // Pass the message directly
+  const handleFileUpload = async(file: File) => {
+    setFile(file)
+    setAnalyzing(true)
+    setStatus("Uploading the file...")
+
+    const uploadedFile = await fs.upload([file])
+    if(!uploadedFile) return setStatus("Failed to upload file. Please try again.")
+
+    // setStatus("Converting to image...")
+    // const imageFile = await convertPdfToImage(file)
+    // if(!imageFile.file) return setStatus("Failed to convert PDF to image. Please try again.")
+    // if(imageFile.error) return setStatus(imageFile.error)
+
+    // setStatus("Uploading the image...")
+    // const uploadedImage = await fs.upload([imageFile.file])
+    // if(!uploadedImage) return setStatus("Failed to upload image file. Please try again.")
+
+    setStatus("Preparing Data...")
+    const uuid = generateUUID()
+    const data ={
+      id:  uuid,
+      filepath: uploadedFile.path,
+      filename: file.name,
+      filesize: file.size,
+      filetype: file.type,
+      feedback: ''
     }
-    reader.readAsText(file)
+    const kvResult = await kv.set(`file-${uuid}`, JSON.stringify(data))
+    if(!kvResult) return setStatus("Failed to save file data. Please try again.")
+
+    setStatus("Analyzing the document...")
+    const feedback = await ai.feedback( 
+      uploadedFile.path,
+      prepareInstructions()
+    )
+    if(!feedback) return setStatus("Failed to analyze the document. Please try again.")
+
+    const feedbackText = typeof feedback.message.content === "string"
+      ? feedback.message.content 
+      : feedback.message.content[0].text;
+
+    setStatus("Saving feedback...")
+    data.feedback = feedbackText
+    const feedbackResult = await kv.set(`file-${uuid}`, JSON.stringify(data))
+    if(!feedbackResult) return setStatus("Failed to save feedback. Please try again.")
+
+    setStatus("Analysis complete! Redirecting to results page...")
+
+    console.log(data)
+
+    
   }
 
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +167,12 @@ export default function TermiChat() {
       handleFileUpload(e.target.files[0])
     }
   }
+
+  useEffect(()=>{
+      if(!auth.isAuthenticated){
+        router.push(`/login?next=/${next || ""}`)
+      }
+  }, [auth.isAuthenticated])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
@@ -159,27 +218,46 @@ export default function TermiChat() {
             </p>
 
             {/* Upload Area */}
-            <Card
-              className={`p-8 border-2 border-dashed transition-all cursor-pointer bg-white hover:border-purple-400 ${
-                dragActive ? "border-purple-500 bg-purple-50 animate-pulse" : "border-gray-300"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900 mb-2">Drop your document here or click to upload</p>
-              <p className="text-gray-600">Supports PDF, TXT, and DOC files</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                accept=".pdf,.txt,.doc,.docx"
-                onChange={onFileSelect}
-              />
-            </Card>
+            {file ? (
+              <Card className="p-6 gap-2 flex-col bg-white/80 backdrop-blur-lg shadow-lg">
+                <h3 className="text-lg font-medium text-purple-700 mb-2">{status}</h3>
+                <img
+                  src={'/resume-scan-2.gif'}
+                  alt="Uploaded document preview"
+                  className="w-full h-64 object-contain"
+                />
+                <p className="text-sm text-green-600">{file.name}</p>
+                <p className="text-sm text-green-600">File size: {formatFileSize(file.size)}</p>
+              </Card>
+              )
+             :
+             (
+              <Card
+                className={`p-8 border-2 border-dashed transition-all cursor-pointer bg-white hover:border-purple-400 ${
+                  dragActive ? "border-purple-500 bg-purple-50 animate-pulse" : "border-gray-300"
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <p className="text-lg font-medium text-gray-900 mb-2">Drop your document here or click to upload</p>
+                <p className="text-gray-600">Supports PDF, TXT, and DOC files</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept=".pdf,.txt,.doc,.docx"
+                  onChange={onFileSelect}
+                  // set file size limit of 5MB now
+                  max={5 * 1024 * 1024}
+                />
+              </Card>
+
+             )
+            }
 
             {/* Feature Cards */}
             <div className="grid md:grid-cols-3 gap-4 mt-8">
