@@ -161,7 +161,7 @@ export default function TermiChat() {
             {/* Upload Area */}
             <Card
               className={`p-8 border-2 border-dashed transition-all cursor-pointer bg-white hover:border-purple-400 ${
-                dragActive ? "border-purple-500 bg-purple-50" : "border-gray-300"
+                dragActive ? "border-purple-500 bg-purple-50 animate-pulse" : "border-gray-300"
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
