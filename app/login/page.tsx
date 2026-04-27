@@ -9,6 +9,7 @@ import { Upload, Send, FileText, Shield, AlertTriangle, PenBox, ArrowRight, Arro
 import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
 import { usePuterStore } from "@/lib/puter"
+import Link from "next/link"
 
 interface Props {
     
@@ -30,17 +31,19 @@ const page = (props: Props) => {
         {/* Header */}
         <div className="border-b border-purple-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
             <div className="max-w-4xl mx-auto px-3 py-3 flex items-center">
-            <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center gap-3 cursor-pointer">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                        termi
+                    </h1>
+                    <p className="text-sm text-gray-600">AI-powered fine print & terms analysis</p>
+                    </div>
                 </div>
-                <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                    termi
-                </h1>
-                <p className="text-sm text-gray-600">AI-powered fine print & terms analysis</p>
-                </div>
-            </div>
+            </Link>
             </div>
         </div>
 
