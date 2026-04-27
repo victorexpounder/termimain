@@ -1,4 +1,5 @@
 'use client'
+
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
 import { usePuterStore } from "@/lib/puter"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation";
 
 interface Props {
     
@@ -18,7 +20,8 @@ interface Props {
 const page = (props: Props) => {
     const {isLoading, auth} = usePuterStore();
     const router = useRouter();
-    const next = new URLSearchParams(window.location.search).get("next")
+    const searchParams = useSearchParams();
+    const next = searchParams.get("next");
 
     useEffect(()=>{
         if(auth.isAuthenticated){

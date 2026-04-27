@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Upload, Send, FileText, Shield, AlertTriangle, PenBox } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
 import { usePuterStore } from "@/lib/puter"
 import { formatFileSize } from "@/lib/formatFileSize"
@@ -39,7 +39,8 @@ export default function TermiChat() {
   const [results, setResults] = useState<any>()
   const {auth, fs, kv, ai} = usePuterStore();
   const router = useRouter();
-  const next = new URLSearchParams(window.location.search).get("next")
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
