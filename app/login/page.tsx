@@ -19,17 +19,19 @@ interface Props {
 const page = (props: Props) => {
     const {isLoading, auth} = usePuterStore();
     const router = useRouter();
-    const next = new URLSearchParams(window.location.search).get("next")
+    const [next, setNext] = useState<string | null>(null)
 
     useEffect(()=>{
         if(typeof window === "undefined") return;
+        const nextParam = new URLSearchParams(window.location.search).get("next")
+        setNext(nextParam)
     }, [])
 
     useEffect(()=>{
         if(auth.isAuthenticated){
             router.push(next || "")
         }
-    }, [auth.isAuthenticated])
+    }, [auth.isAuthenticated, next, router])
 
     return (
         <div className="min-h-screen bg-[url('/bg-auth.svg')] bg-cover bg-center ">

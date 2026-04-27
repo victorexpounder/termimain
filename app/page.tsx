@@ -37,9 +37,9 @@ export default function TermiChat() {
   const [analyzing, setAnalyzing] = useState<boolean>(false)
   const [status, setStatus] = useState<string>("")
   const [results, setResults] = useState<any>()
+  const [next, setNext] = useState<string | null>(null)
   const {auth, fs, kv, ai} = usePuterStore();
   const router = useRouter();
-  const next = new URLSearchParams(window.location.search).get("next")
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
@@ -192,13 +192,15 @@ export default function TermiChat() {
 
   useEffect(()=>{
       if(typeof window === "undefined") return;
+      const nextParam = new URLSearchParams(window.location.search).get("next")
+      setNext(nextParam)
   }, [])
 
   useEffect(()=>{
       if(!auth.isAuthenticated){
         router.push(`/login?next=/${next || ""}`)
       }
-  }, [auth.isAuthenticated])
+  }, [auth.isAuthenticated, next, router])
 
   if(results){
     return (
