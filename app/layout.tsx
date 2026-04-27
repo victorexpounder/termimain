@@ -26,7 +26,7 @@ export default function RootLayout({
         <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
       </head>
       <body
-        className={``}
+        className={`overflow-x-hidden `}
         style={{ fontFamily: "Inter, sans-serif" }}
       >
         <ParentWrapper>

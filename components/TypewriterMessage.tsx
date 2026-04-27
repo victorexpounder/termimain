@@ -10,7 +10,7 @@ interface TypewriterMessageProps {
   speed?: number
 }
 
-export function TypewriterMessage({ content, speed = 7 }: TypewriterMessageProps) {
+export function TypewriterMessage({ content, speed = 4 }: TypewriterMessageProps) {
   const { displayedText } = useTypewriter(content, speed)
 
   return (
