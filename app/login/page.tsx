@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation"
 import { Textarea } from "@/components/ui/textarea"
 import { usePuterStore } from "@/lib/puter"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation";
 
 interface Props {
     
@@ -20,8 +19,11 @@ interface Props {
 const page = (props: Props) => {
     const {isLoading, auth} = usePuterStore();
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const next = searchParams.get("next");
+    const next = new URLSearchParams(window.location.search).get("next")
+
+    useEffect(()=>{
+        if(typeof window === "undefined") return;
+    }, [])
 
     useEffect(()=>{
         if(auth.isAuthenticated){
