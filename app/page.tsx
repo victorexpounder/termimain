@@ -134,7 +134,7 @@ export default function TermiChat() {
     const pages = await getPdfPageCount(file);
 
     if (pages > 7) {
-      return setStatus("PDF must be 5 pages or less.");
+      return setStatus("PDF must be 7 pages or less.");
     }
     setFile(file)
     setAnalyzing(true)
