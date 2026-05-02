@@ -19,6 +19,7 @@ import { AnalysisResults } from "@/components/Analysis"
 import { mockResults } from "@/lib/mockResults"
 import { motion } from "framer-motion"
 import { TypewriterMessage } from "@/components/TypewriterMessage"
+import { getPdfPageCount } from "@/utils/pdfjs"
 
 // Define a type for messages to match the structure expected by the UI
 interface Message {
@@ -122,6 +123,19 @@ export default function TermiChat() {
   }
 
   const handleFileUpload = async(file: File) => {
+    if (file.type !== "application/pdf") {
+      return setStatus("Only PDF files are supported for now.");
+    }
+
+    if (file.size > 1 * 1024 * 1024) {
+      return setStatus("File size must be less than 1MB.");
+    }
+
+    const pages = await getPdfPageCount(file);
+
+    if (pages > 7) {
+      return setStatus("PDF must be 5 pages or less.");
+    }
     setFile(file)
     setAnalyzing(true)
     setStatus("Uploading the file...")
@@ -305,7 +319,9 @@ export default function TermiChat() {
                       <Upload className="w-12 h-12 text-purple-600 mx-auto mb-4" />
                     </motion.div>
                     <p className="text-lg font-medium text-gray-900 mb-2">Drop your document here or click to upload</p>
-                    <p className="text-gray-600">Supports PDF, TXT, and DOC files</p>
+                    <p className="text-gray-600">Supports PDF only (max 7 pages, 1MB)</p>
+                    <p className="text-gray-600 text-sm">Large documents may take longer and consume more resources</p>
+                    <p className="text-red-500">{status}</p>
                     <input
                       ref={fileInputRef}
                       type="file"

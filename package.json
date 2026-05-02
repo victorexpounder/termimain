@@ -23,7 +23,7 @@
     "motion": "^12.38.0",
     "next": "^14.2.5",
     "pdfjs": "^2.5.4",
-    "pdfjs-dist": "^5.4.624",
+    "pdfjs-dist": "^5.7.284",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
